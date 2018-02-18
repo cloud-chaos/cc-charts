@@ -1,0 +1,56 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: {{ template "nfs-storage.fullname" . }}
+  labels:
+    app: {{ template "nfs-storage.name" . }}
+    chart: {{ template "nfs-storage.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "nfs-storage.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ template "nfs-storage.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: {{ .Values.nfsClient.provisionerName }}
+            - name: NFS_SERVER
+              value: {{ .Values.nfsClient.nfsServer }}
+            - name: NFS_PATH
+              value: {{ .Values.nfsClient.nfsPath }}
+          resources:
+    {{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: {{ .Values.nfsClient.nfsServer }}
+            path: {{ .Values.nfsClient.nfsPath }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

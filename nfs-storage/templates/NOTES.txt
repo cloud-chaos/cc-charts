@@ -1,0 +1,8 @@
+Congratulations!  You just deployed the nfs persistent storage provider.
+
+To use it, create a PVC which has the annotation 'volume.beta.kubernetes.io/storage-class:' set to a value of "managed-nfs-storage"
+
+It would be wise to configure a Storage Class, then reference that class when you create volumes in deployment objects.
+
+https://kubernetes.io/docs/concepts/storage/storage-classes/
+
